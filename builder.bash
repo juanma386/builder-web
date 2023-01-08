@@ -9,7 +9,7 @@ source ./bash_loading_animations.sh
 # Run BLA::stop_loading_animation if the script is interrupted
 trap BLA::stop_loading_animation SIGINT
 
-domain=vpx.ar
+domain=example.com
 
 
 demo_loading_animation() {
@@ -154,7 +154,7 @@ if [ "$(whoami)" != root ]; then # Check if root user
                 	then
 	                  echo "Error Syntax Service" $'\e[1;31m' [ ERROR ] $'\e[0m'
                 fi
-		 echo "this is proccessing ${website}.hexome.cloud"
+		 echo "this is proccessing ${website}.${domain}"
 		sleep 0.1
 		  echo "Do yet another thing"
 		  echo "And do a last thing"
