@@ -10,6 +10,8 @@ source ./bash_loading_animations.sh
 trap BLA::stop_loading_animation SIGINT
 
 domain=vpx.ar
+
+
 demo_loading_animation() {
   BLA_active_loading_animation=( "${@}" )
   # Extract the delay between each frame from the active_loading_animation array
@@ -87,6 +89,14 @@ CustomLog /var/www/'${website}'.'${domain}'/log/requests.log combined
 create_  "${website}"
 fi
 }
+#-------------------------------------------
+# ENABLE WEBSITE
+#-------------------------------------------
+enabled_() {
+demo_loading_animation "${BLA_clock[@]}";
+sudo -u root -s ln -s /etc/apache2/sites-available/000-${website_enabled}.conf /etc/apache2/sites-enabled/000-${website_enabled}.conf && echo "Activate WebSite is Success "$'\e[1;33m' [ 201 ] $'\e[0m'|| echo "Error on activate WebSite" $'\e[1;31m' [ 500 ] $'\e[0m';
+sudo -u root -s apachectl configtest && systemctl restart apache2 || echo "Error Config Test";
+}
 
 create_() {
 website=$(filter "${1}") # $1 represent first argument
@@ -101,44 +111,14 @@ if [ ! -d /var/www/${website}.${domain}/html ]; then
 echo "Error Creating Folder please check log details to more info" $'\e[1;31m' [ ERROR ] $'\e[0m'
 else
 echo "Created Succces File to ${website}.${domain}" $'\e[1;33m' [ OK ] $'\e[0m'
-ls /etc/apache2/sites-enabled|grep $1 || enable_  ${website}.${domain}
+ls /etc/apache2/sites-enabled|grep $1 || enabled_  ${website}.${domain}
 fi
 else
 echo "Is Succces Present File of ${website}.${domain}" $'\e[1;32m' [ READY ] $'\e[0m'
-ls /etc/apache2/sites-enabled|grep $1 || enable_  ${website}.${domain}
+ls /etc/apache2/sites-enabled|grep $1 || enabled_  ${website}.${domain}
 fi
 }
 
-enable_(){
-website_enable=${1} # $1 represent first argument
-echo "Try Activate new server to ${website_enable}.${domain}" $'\e[0;32m' [ PROCCESSING ] $'\e[0m'
-base=/etc/apache2/sites-enabled/000-${website_enable}.conf
-if [[ -L ${base} ]]; then
-        if [[ -e ${base} ]]; then
-        sudo ln -s /etc/apache2/sites-available/000-${website_enable}.conf  ${base}
-                # echo "Error Linking File to work on system, please check error on system"$'\e[0;31m' [ ERROR ] $'\e[0m'
-                echo "Success File is created to system" $'\e[0;32m' [ OK ] $'\e[0m'
-        else
-                echo "Clean file and reload" $'\e[0;33m' [ TRY ] $'\e[0m'
-                rm base
-                sudo ln -s /etc/apache2/sites-available/000-${website_enable}.conf  base
-                    echo "Error Linking File to work on system, please check error on system"$'\e[0;31m' [ ERROR ] $'\e[0m'
-        fi
-else
-    echo "Please check error on system configuration"$'\e[0;31m' [ ERROR ] $'\e[0m'
-fi
-sleep 1.0
-                        if [[ -L base ]]; then
-                          if [[ -e base ]]; then
-                                        echo "Success File is created to system" $'\e[0;32m' [ OK ] $'\e[0m'
-                                        restart
-                           else
-                                echo "Error Linking File to work on system, please check error on system"$'\e[0;31m' [ ERROR ] $'\e[0m'
-				try
-                          fi
-			fi
-restart_
-}
 
 restart_() {
 website=filter "${1}" # $1 represent first argument
@@ -229,11 +209,7 @@ ls $SMB_CONF|xargs grep -r "include = /etc/samba/smb.conf.shares" && echo "Confi
 ls /etc/apache2/sites-available|grep $1 && echo "Configuration is SUCCESS "$'\e[1;33m' [ 200 ] $'\e[0m'|| echo "Configuration is Not Found [ 404 ]"
 ls /etc/apache2/sites-enabled|grep $1 && echo "Configuration Enabled is SUCCESS "$'\e[1;33m' [ 202 ] $'\e[0m'|| echo "Configuration is Not Found [ 404 ]"
 
-enabled_() {
-demo_loading_animation "${BLA_clock[@]}";
-sudo -u root -s ln -s /etc/apache2/sites-available/000-${website_enabled}.conf /etc/apache2/sites-enabled/000-${website_enabled}.conf && echo "Activate WebSite is Success "$'\e[1;33m' [ 201 ] $'\e[0m'|| echo "Error on activate WebSite" $'\e[1;31m' [ 500 ] $'\e[0m';
-sudo -u root -s apachectl configtest && systemctl restart apache2 || echo "Error Config Test";
-}
+
 website_enabled=${website}.${domain};
 
 ls /etc/apache2/sites-enabled|grep $1 || enabled_
