@@ -97,17 +97,15 @@ sleep 1
 sudo -u root -s mkdir -p /var/www/${website}.${domain}/html /var/www/${website}.${domain}/log;      
 sudo -u root -s chown www-data:www-data /var/www
 sudo -u root -s chown -R www-data:www-data /var/www/${website}.${domain}/
-
-
 if [ ! -d /var/www/${website}.${domain}/html ]; then 
 echo "Error Creating Folder please check log details to more info" $'\e[1;31m' [ ERROR ] $'\e[0m'
 else
 echo "Created Succces File to ${website}.${domain}" $'\e[1;33m' [ OK ] $'\e[0m'
-enable_  ${website}.${domain}
+ls /etc/apache2/sites-enabled|grep $1 || enable_  ${website}.${domain}
 fi
 else
 echo "Is Succces Present File of ${website}.${domain}" $'\e[1;32m' [ READY ] $'\e[0m'
-enable_  ${website}.${domain}
+ls /etc/apache2/sites-enabled|grep $1 || enable_  ${website}.${domain}
 fi
 }
 
