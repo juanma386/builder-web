@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2034 # https://github.com/koalaman/shellcheck/wiki/SC2034
 
+
+
+
 # Load in the functions and animations
 source ./bash_loading_animations.sh
 # Run BLA::stop_loading_animation if the script is interrupted
 trap BLA::stop_loading_animation SIGINT
 
+domain=vpx.ar
 demo_loading_animation() {
   BLA_active_loading_animation=( "${@}" )
   # Extract the delay between each frame from the active_loading_animation array
@@ -54,9 +58,9 @@ service_() {
 #website="${1}" # $1 represent first argument
 website=$(filter "${1}") # $1 represent first argument
 
-echo "Try create config file on ${website}.hexome.cloud"  $'\e[0;32m' [ START ] $'\e[0m';
+echo "Try create config file on ${website}.${domain}"  $'\e[0;32m' [ START ] $'\e[0m';
 sleep 0.5
-webconfFile=/etc/apache2/sites-available/000-${website}.hexome.cloud.conf
+webconfFile=/etc/apache2/sites-available/000-${website}.${domain}.conf
 if [ ! -e  webconfFile ]; then
 if  echo $(apachectl configtest) === "Syntax OK" &> /dev/null; then 
 echo "Try Create your website" $'\e[0;33m' [ TRY ] $'\e[0m'; 
@@ -67,19 +71,19 @@ sleep 1.0
 echo '# UseCanonicalName On
 
 <VirtualHost *:80>
-ServerName '${website}'.hexome.cloud
-DocumentRoot /var/www/'${website}'.hexome.cloud/html
+ServerName '${website}'.'${domain}'
+DocumentRoot /var/www/'${website}'.'${domain}'/html
 
-ErrorLog /var/www/'${website}'.hexome.cloud/log/error.log
-CustomLog /var/www/'${website}'.hexome.cloud/log/requests.log combined
+ErrorLog /var/www/'${website}'.'${domain}'/log/error.log
+CustomLog /var/www/'${website}'.'${domain}'/log/requests.log combined
 
-    <Directory "/var/www/'${website}'.hexome.cloud/html">
+    <Directory "/var/www/'${website}'.'${domain}'/html">
         Options Indexes FollowSymLinks Includes ExecCGI MultiViews
         AllowOverride All
         Require all granted
     </Directory>
 </VirtualHost>
-' > /etc/apache2/sites-available/000-${website}.hexome.cloud.conf;
+' > /etc/apache2/sites-available/000-${website}.${domain}.conf;
 create_  "${website}"
 fi
 }
@@ -87,35 +91,39 @@ fi
 create_() {
 website=$(filter "${1}") # $1 represent first argument
 # website=${1} # $1 represent first argument
-if [ ! -d /var/www/${website}.hexome.cloud/html ]; then 
-echo "Try create folder /var/www/${website}.hexome.cloud/html" $'\e[1;33m' [ TRY ] $'\e[0m'
+if [ ! -d /var/www/${website}.${domain}/html ]; then 
+echo "Try create folder /var/www/${website}.${domain}/html" $'\e[1;33m' [ TRY ] $'\e[0m'
 sleep 1
-sudo -u www-data -s mkdir -p /var/www/${website}.hexome.cloud/html /var/www/${website}.hexome.cloud/log;      
-if [ ! -d /var/www/${website}.hexome.cloud/html ]; then 
+sudo -u root -s mkdir -p /var/www/${website}.${domain}/html /var/www/${website}.${domain}/log;      
+sudo -u root -s chown www-data:www-data /var/www
+sudo -u root -s chown -R www-data:www-data /var/www/${website}.${domain}/
+
+
+if [ ! -d /var/www/${website}.${domain}/html ]; then 
 echo "Error Creating Folder please check log details to more info" $'\e[1;31m' [ ERROR ] $'\e[0m'
 else
-echo "Created Succces File to ${website}.hexome.cloud" $'\e[1;33m' [ OK ] $'\e[0m'
-enable_  ${website}
+echo "Created Succces File to ${website}.${domain}" $'\e[1;33m' [ OK ] $'\e[0m'
+enable_  ${website}.${domain}
 fi
 else
-echo "Is Succces Present File of ${website}.hexome.cloud" $'\e[1;32m' [ READY ] $'\e[0m'
-enable_  ${website}
+echo "Is Succces Present File of ${website}.${domain}" $'\e[1;32m' [ READY ] $'\e[0m'
+enable_  ${website}.${domain}
 fi
 }
 
 enable_(){
 website_enable=${1} # $1 represent first argument
-echo "Try Activate new server to ${website_enable}.hexome.cloud" $'\e[0;32m' [ PROCCESSING ] $'\e[0m'
-base=/etc/apache2/sites-enabled/000-${website_enable}.hexome.cloud.conf
-if [[ -L base ]]; then
-        if [[ -e base ]]; then
-        sudo ln -s /etc/apache2/sites-available/000-${website_enable}.hexome.cloud.conf  ${base}
+echo "Try Activate new server to ${website_enable}.${domain}" $'\e[0;32m' [ PROCCESSING ] $'\e[0m'
+base=/etc/apache2/sites-enabled/000-${website_enable}.conf
+if [[ -L ${base} ]]; then
+        if [[ -e ${base} ]]; then
+        sudo ln -s /etc/apache2/sites-available/000-${website_enable}.conf  ${base}
                 # echo "Error Linking File to work on system, please check error on system"$'\e[0;31m' [ ERROR ] $'\e[0m'
                 echo "Success File is created to system" $'\e[0;32m' [ OK ] $'\e[0m'
         else
                 echo "Clean file and reload" $'\e[0;33m' [ TRY ] $'\e[0m'
                 rm base
-                sudo ln -s /etc/apache2/sites-available/000-${website_enable}.hexome.cloud.conf  base
+                sudo ln -s /etc/apache2/sites-available/000-${website_enable}.conf  base
                     echo "Error Linking File to work on system, please check error on system"$'\e[0;31m' [ ERROR ] $'\e[0m'
         fi
 else
@@ -137,7 +145,7 @@ restart_
 restart_() {
 website=filter "${1}" # $1 represent first argument
 #website="${1}" # $1 represent first argument
-echo "Try apply Configuration on System to ${website}.hexome.cloud"
+echo "Try apply Configuration on System to ${website}.${domain}"
 sleep 1.0
 if  echo $(apachectl configtest) === "Syntax OK" &> /dev/null; then systemctl restart apache2 &> /dev/null;
 echo "Congratulation try your server configuration"  $'\e[1;32m' [ SUCCESS ] $'\e[0m'
@@ -185,3 +193,49 @@ if [ "$(whoami)" != root ]; then # Check if root user
 		fi
    fi # Check if exist field option
   fi # Final Service
+
+
+[ -f /etc/samba/smb.conf ] && echo "$FILE exist." || sudo apt install samba -y
+
+
+
+create_conf_()
+{
+	echo "
+
+[${website} of ${domain}]
+        writable=yes
+        force user=www-data
+        public=yes
+        path=/var/www/${website}.${domain}/html
+        guest account=www-data
+        create mode=644
+
+	"  >> $CONF_SAMBA && echo 'Config is loaded success [ 201 ]' || echo 'Error loading Samba Service [ 500 ]';
+	sudo systemctl restart smbd && echo "Service Samba is restart ACCEPTED [ 202 ]" || echo "Restart Service Samba is ERRORSERVER [ 500 ]";
+}
+
+CONF_SAMBA=/etc/samba/smb.conf.shares
+if test -f "$CONF_SAMBA"; then
+    echo "$CONF_SAMBA exists.";
+else
+  echo "" > $CONF_SAMBA;
+  echo "Configuration Samba is inicializate";
+fi
+
+ls $CONF_SAMBA|xargs grep -r "${website} of ${domain}" || create_conf_;
+
+SMB_CONF=/etc/samba/smb.conf;
+ls $SMB_CONF|xargs grep -r "include = /etc/samba/smb.conf.shares" && echo "Configuration is ACCEPTED [ 202 ]"|| echo "include = /etc/samba/smb.conf.shares" >> $SMB_CONF;
+
+ls /etc/apache2/sites-available|grep $1 && echo "Configuration is SUCCESS "$'\e[1;33m' [ 200 ] $'\e[0m'|| echo "Configuration is Not Found [ 404 ]"
+ls /etc/apache2/sites-enabled|grep $1 && echo "Configuration Enabled is SUCCESS "$'\e[1;33m' [ 202 ] $'\e[0m'|| echo "Configuration is Not Found [ 404 ]"
+
+enabled_() {
+demo_loading_animation "${BLA_clock[@]}";
+sudo -u root -s ln -s /etc/apache2/sites-available/000-${website_enabled}.conf /etc/apache2/sites-enabled/000-${website_enabled}.conf && echo "Activate WebSite is Success "$'\e[1;33m' [ 201 ] $'\e[0m'|| echo "Error on activate WebSite" $'\e[1;31m' [ 500 ] $'\e[0m';
+sudo -u root -s apachectl configtest && systemctl restart apache2 || echo "Error Config Test";
+}
+website_enabled=${website}.${domain};
+
+ls /etc/apache2/sites-enabled|grep $1 || enabled_
