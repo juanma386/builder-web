@@ -10,7 +10,8 @@ source ./bash_loading_animations.sh
 trap BLA::stop_loading_animation SIGINT
 
 domain=example.com
-
+# apache2 "debian/ubuntu" or httpd "centos"
+server_name=apache2
 
 demo_loading_animation() {
   BLA_active_loading_animation=( "${@}" )
@@ -62,7 +63,7 @@ website=$(filter "${1}") # $1 represent first argument
 
 echo "Try create config file on ${website}.${domain}"  $'\e[0;32m' [ START ] $'\e[0m';
 sleep 0.5
-webconfFile=/etc/apache2/sites-available/000-${website}.${domain}.conf
+webconfFile=/etc/${server_name}/sites-available/000-${website}.${domain}.conf
 if [ ! -e  webconfFile ]; then
 if  echo $(apachectl configtest) === "Syntax OK" &> /dev/null; then 
 echo "Try Create your website" $'\e[0;33m' [ TRY ] $'\e[0m'; 
@@ -85,7 +86,7 @@ CustomLog /var/www/'${website}'.'${domain}'/log/requests.log combined
         Require all granted
     </Directory>
 </VirtualHost>
-' > /etc/apache2/sites-available/000-${website}.${domain}.conf;
+' > /etc/${server_name}/sites-available/000-${website}.${domain}.conf;
 create_  "${website}"
 fi
 }
@@ -94,8 +95,8 @@ fi
 #-------------------------------------------
 enabled_() {
 demo_loading_animation "${BLA_clock[@]}";
-sudo -u root -s ln -s /etc/apache2/sites-available/000-${website_enabled}.conf /etc/apache2/sites-enabled/000-${website_enabled}.conf && echo "Activate WebSite is Success "$'\e[1;33m' [ 201 ] $'\e[0m'|| echo "Error on activate WebSite" $'\e[1;31m' [ 500 ] $'\e[0m';
-sudo -u root -s apachectl configtest && systemctl restart apache2 || echo "Error Config Test";
+sudo -u root -s ln -s /etc/${server_name}/sites-available/000-${website_enabled}.conf /etc/${server_name}/sites-enabled/000-${website_enabled}.conf && echo "Activate WebSite is Success "$'\e[1;33m' [ 201 ] $'\e[0m'|| echo "Error on activate WebSite" $'\e[1;31m' [ 500 ] $'\e[0m';
+sudo -u root -s apachectl configtest && systemctl restart ${server_name} || echo "Error Config Test";
 }
 
 create_() {
@@ -111,11 +112,11 @@ if [ ! -d /var/www/${website}.${domain}/html ]; then
 echo "Error Creating Folder please check log details to more info" $'\e[1;31m' [ ERROR ] $'\e[0m'
 else
 echo "Created Succces File to ${website}.${domain}" $'\e[1;33m' [ OK ] $'\e[0m'
-ls /etc/apache2/sites-enabled|grep $1 || enabled_  ${website}.${domain}
+ls /etc/${server_name}/sites-enabled|grep $1 || enabled_  ${website}.${domain}
 fi
 else
 echo "Is Succces Present File of ${website}.${domain}" $'\e[1;32m' [ READY ] $'\e[0m'
-ls /etc/apache2/sites-enabled|grep $1 || enabled_  ${website}.${domain}
+ls /etc/${server_name}/sites-enabled|grep $1 || enabled_  ${website}.${domain}
 fi
 }
 
@@ -125,7 +126,7 @@ website=filter "${1}" # $1 represent first argument
 #website="${1}" # $1 represent first argument
 echo "Try apply Configuration on System to ${website}.${domain}"
 sleep 1.0
-if  echo $(apachectl configtest) === "Syntax OK" &> /dev/null; then systemctl restart apache2 &> /dev/null;
+if  echo $(apachectl configtest) === "Syntax OK" &> /dev/null; then systemctl restart ${server_name} &> /dev/null;
 echo "Congratulation try your server configuration"  $'\e[1;32m' [ SUCCESS ] $'\e[0m'
 else
 echo "Check Errors building Website" $'\e[1;31m' [ ERROR ] $'\e[0m'
@@ -206,10 +207,10 @@ ls $CONF_SAMBA|xargs grep -r "${website} of ${domain}" || create_conf_;
 SMB_CONF=/etc/samba/smb.conf;
 ls $SMB_CONF|xargs grep -r "include = /etc/samba/smb.conf.shares" && echo "Configuration is ACCEPTED [ 202 ]"|| echo "include = /etc/samba/smb.conf.shares" >> $SMB_CONF;
 
-ls /etc/apache2/sites-available|grep $1 && echo "Configuration is SUCCESS "$'\e[1;33m' [ 200 ] $'\e[0m'|| echo "Configuration is Not Found [ 404 ]"
-ls /etc/apache2/sites-enabled|grep $1 && echo "Configuration Enabled is SUCCESS "$'\e[1;33m' [ 202 ] $'\e[0m'|| echo "Configuration is Not Found [ 404 ]"
+ls /etc/${server_name}/sites-available|grep $1 && echo "Configuration is SUCCESS "$'\e[1;33m' [ 200 ] $'\e[0m'|| echo "Configuration is Not Found [ 404 ]"
+ls /etc/${server_name}/sites-enabled|grep $1 && echo "Configuration Enabled is SUCCESS "$'\e[1;33m' [ 202 ] $'\e[0m'|| echo "Configuration is Not Found [ 404 ]"
 
 
 website_enabled=${website}.${domain};
 
-ls /etc/apache2/sites-enabled|grep $1 || enabled_
+ls /etc/${server_name}/sites-enabled|grep $1 || enabled_
