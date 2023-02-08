@@ -2,7 +2,7 @@
 # shellcheck disable=SC2034 # https://github.com/koalaman/shellcheck/wiki/SC2034
 
 
-
+echo "Use this builder on localnet please"
 
 # Load in the functions and animations
 source ./bash_loading_animations.sh
